@@ -140,7 +140,8 @@ public class BlockchainCoreImpl extends BlockchainCore {
         List<String> privateKeyList = new ArrayList<>();
         for(Account account:allAccountList){
             privateKeyList.add(account.getPrivateKey());
-            response = buildTransactionDTO(privateKeyList,request.getRecipientList(),payerChangeAccount.getAddress(),0);
+            //TODO
+            response = buildTransactionDTO(privateKeyList,request.getRecipientList(),payerChangeAccount.getAddress(),100);
             if(response.isBuildTransactionSuccess()){
                 return response;
             }
