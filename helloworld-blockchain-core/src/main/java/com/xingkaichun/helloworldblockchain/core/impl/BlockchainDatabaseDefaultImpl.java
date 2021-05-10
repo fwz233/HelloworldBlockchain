@@ -141,6 +141,11 @@ public class BlockchainDatabaseDefaultImpl extends BlockchainDatabase {
             LogUtil.debug("区块数据异常，区块中新产生的哈希异常。");
             return false;
         }
+        //校验存储费
+        if(!isBlockStoreFeeRight(block)){
+            LogUtil.debug("区块数据异常，未花费交易输出不够存储花费。");
+            return false;
+        }
         //新产生的地址是否合法
         if(isAddressIllegal(block)){
             LogUtil.debug("区块数据异常，区块中新产生的哈希异常。");
@@ -1036,5 +1041,18 @@ public class BlockchainDatabaseDefaultImpl extends BlockchainDatabase {
      */
     private boolean isReachConsensus(Block block) {
         return consensus.isReachConsensus(this,block);
+    }
+
+    /**
+     * 区块支付的存储费是否正确
+     */
+    private boolean isBlockStoreFeeRight(Block block) {
+        for(Transaction transaction : block.getTransactions()){
+            if(!TransactionTool.isTransactionStoreHasEnoughStoreFee(transaction,block.getHeight())){
+                LogUtil.debug("区块数据异常：交易输入没有足够的金额去支付交易输入的存储花费。");
+                return false;
+            }
+        }
+        return true;
     }
 }
