@@ -177,9 +177,16 @@ public class MinerTool {
         nonNonceBlock.setTransactions(packingTransactionList);
 
         //创建挖矿奖励交易
-        //激励
+        //激励金额
         long incentiveValue = blockchainDataBase.getIncentive().incentiveAmount(blockchainDataBase,nonNonceBlock);
-        Transaction mineAwardTransaction =  buildIncentiveTransaction(minerAccount.getAddress(),incentiveValue);
+        //激励发放地址
+        String incentiveAddress = blockchainDataBase.getIncentive().incentiveAddress(blockchainDataBase,nonNonceBlock);
+        Transaction mineAwardTransaction = null;
+        if(StringUtil.isNullOrEmpty(incentiveAddress)){
+            mineAwardTransaction =  buildIncentiveTransaction(minerAccount.getAddress(),incentiveValue);
+        }else {
+            mineAwardTransaction =  buildIncentiveTransaction(incentiveAddress,incentiveValue);
+        }
         packingTransactionList.add(0,mineAwardTransaction);
 
         String merkleTreeRoot = BlockTool.calculateBlockMerkleTreeRoot(nonNonceBlock);

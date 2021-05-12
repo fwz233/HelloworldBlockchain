@@ -4,6 +4,9 @@ import com.xingkaichun.helloworldblockchain.core.BlockchainDatabase;
 import com.xingkaichun.helloworldblockchain.core.Incentive;
 import com.xingkaichun.helloworldblockchain.core.model.Block;
 import com.xingkaichun.helloworldblockchain.core.tools.BlockTool;
+import com.xingkaichun.helloworldblockchain.crypto.AccountUtil;
+import com.xingkaichun.helloworldblockchain.util.LogUtil;
+import com.xingkaichun.helloworldblockchain.util.StringUtil;
 
 /**
  * 经过创始团队的深入热烈的探讨，最终确定了激励分配方案。
@@ -54,44 +57,63 @@ public class IncentiveDefaultImpl extends Incentive {
     @Override
     public long incentiveAmount(BlockchainDatabase blockchainDataBase, Block block) {
         //给予矿工的交易手续费
-        long fee = (long) (BlockTool.getBlockFee(block)*0.2);
+        long minerFee = (long) (BlockTool.getBlockFee(block)*0.2);
         //给予矿工的挖矿津贴
-        long subsidy = getSubsidy(block);
+        long minerSubsidy = getMinerSubsidy(block);
+        //给予其他团体的挖矿津贴，由矿工代领取。
+        long otherIncentiveAmount = getOtherSubsidy(block);
         //总的挖矿奖励
-        long total = subsidy + fee;
+        long total = minerSubsidy + minerFee + otherIncentiveAmount;
         return total;
     }
 
-    private long getSubsidy(Block block) {
+    @Override
+    public String incentiveAddress(BlockchainDatabase blockchainDataBase, Block block) {
         if(block.getHeight() == 1){
-            /**
-             * 大约(创始团队区块1到区块20000的奖励) + 大约(开发者区块1到区块20000的奖励) + 矿工的第一个区块的奖励
-             * 为什么是大约，因为还没有计算激励来源②、激励来源③
-             * 这里是借用矿工将分配给创始团队与开发者前20000个区块的奖励拿出来，开发者奖励给哪些人，会看github的贡献，任何人可查。
-             * 创始团队、开发者的奖励每隔一段时间就可以借用矿工之手将币拿出来一部分，这样免得避免创始团队、开发者提前拿到一大笔币。
-             */
-            return 2L * 10000L * 10000L + 20L * 10000L * 10000L + 10000L;
+            return AccountUtil.randomAccount().getAddress();
         }
+        return null;
+    }
 
-        /**
-         * 系统最初派发的一万亿奖励的分配
-         * 随着时间的过去，矿工越来越多了，所以发放的奖励也多了。
-         *                       前10000*1个区块，每个区块奖励10000*1个
-         * 如果条件不满足前一条，前10000*2个区块，每个区块奖励10000*2个
-         * 如果条件不满足前一条，前10000*3个区块，每个区块奖励10000*3个
-         * 如果条件不满足前一条，前10000*n(n小于等于40)个区块，每个区块奖励10000*n个
-         *
-         * 随着时间的过去，固定奖励快没了，降低区块奖励，缓慢的降低固定奖励，给矿工一个缓冲器
-         * 如果条件不满足前一条，前10000*41个区块，每个区块奖励10000*(40-(41-41))个
-         * 如果条件不满足前一条，前10000*42个区块，每个区块奖励10000*(40-(42-41))个
-         * 如果条件不满足前一条，前10000*43个区块，每个区块奖励10000*(40-(43-41))个
-         * 如果条件不满足前一条，前10000*n(n小于等于80)个区块，每个区块奖励10000*(40-(n-41))个
-         *
-         * 剩余的矿工奖励也要分配完
-         * 如果条件不满足前一条，前10000*n(n小于等于440)个区块，每个区块奖励10000个
-         *
-         * 最后不再奖励了
-         */
+    @Override
+    public boolean isIncentiveRight(BlockchainDatabase blockchainDataBase, Block block) {
+        long writeIncentiveValue = BlockTool.getMinerIncentiveValue(block);
+        long targetIncentiveValue = incentiveAmount(blockchainDataBase,block);
+        if(writeIncentiveValue != targetIncentiveValue){
+            LogUtil.debug("区块数据异常，挖矿奖励数据异常。");
+            return false;
+        }
+        String writeAddress = block.getTransactions().get(0).getOutputs().get(0).getAddress();
+        String targetAddress = incentiveAddress(blockchainDataBase,block);;
+        if(!StringUtil.isNullOrEmpty(targetAddress)){
+            if(!StringUtil.isEquals(targetAddress,writeAddress)){
+
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 系统最初'一万亿'派发给矿工的激励分配策略
+     *
+     * 随着时间的过去，矿工越来越多了，所以发放的奖励也多了。
+     *                       前10000*1个区块，每个区块奖励10000*1个
+     * 如果条件不满足前一条，前10000*2个区块，每个区块奖励10000*2个
+     * 如果条件不满足前一条，前10000*3个区块，每个区块奖励10000*3个
+     * 如果条件不满足前一条，前10000*n(n小于等于40)个区块，每个区块奖励10000*n个
+     *
+     * 随着时间的过去，固定奖励快没了，降低区块奖励，缓慢的降低固定奖励，给矿工一个缓冲期
+     * 如果条件不满足前一条，前10000*41个区块，每个区块奖励10000*(40-(41-41))个
+     * 如果条件不满足前一条，前10000*42个区块，每个区块奖励10000*(40-(42-41))个
+     * 如果条件不满足前一条，前10000*43个区块，每个区块奖励10000*(40-(43-41))个
+     * 如果条件不满足前一条，前10000*n(n小于等于80)个区块，每个区块奖励10000*(40-(n-41))个
+     *
+     * 剩余的矿工奖励也要分配完
+     * 如果条件不满足前一条，前10000*n(n小于等于440)个区块，每个区块奖励10000个
+     *
+     * 最后不再奖励了
+     */
+    private long getMinerSubsidy(Block block) {
         if(block.getHeight() <= 10000*40){
             return 10000L * ((block.getHeight()-1)/10000+1);
         }else if(block.getHeight() <= 10000*40+10000*40){
@@ -103,5 +125,16 @@ public class IncentiveDefaultImpl extends Incentive {
         }
     }
 
-
+    private long getOtherSubsidy(Block block) {
+        if(block.getHeight() == 1){
+            /**
+             * 大约(创始团队区块1到区块20000的奖励) + 大约(开发者区块1到区块20000的奖励) + 矿工的第一个区块的奖励
+             * 为什么是大约，因为还没有计算激励来源②、激励来源③
+             * 这里是借用矿工将分配给创始团队与开发者前20000个区块的奖励拿出来，开发者奖励给哪些人，会看github的贡献，任何人可查。
+             * 创始团队、开发者的奖励每隔一段时间就可以借用矿工之手将币拿出来一部分，这样免得避免创始团队、开发者提前拿到一大笔币。
+             */
+            return 2L * 10000L * 10000L + 20L * 10000L * 10000L + 10000L;
+        }
+        return 0L;
+    }
 }

@@ -162,8 +162,8 @@ public class BlockchainDatabaseDefaultImpl extends BlockchainDatabase {
             return false;
         }
         //校验激励
-        if(!isIncentiveRight(block)){
-            LogUtil.debug("区块数据异常，未满足共识规则。");
+        if(!incentive.isIncentiveRight(this,block)){
+            LogUtil.debug("区块数据异常，激励校验失败。");
             return false;
         }
 
@@ -1024,18 +1024,6 @@ public class BlockchainDatabaseDefaultImpl extends BlockchainDatabase {
     }
     //endregion
 
-    /**
-     * 区块激励正确吗？
-     */
-    private boolean isIncentiveRight(Block block) {
-        long writeIncentiveValue = BlockTool.getMinerIncentiveValue(block);
-        long targetIncentiveValue = incentive.incentiveAmount(this,block);
-        if(writeIncentiveValue != targetIncentiveValue){
-            LogUtil.debug("区块数据异常，挖矿奖励数据异常。");
-            return false;
-        }
-        return true;
-    }
     /**
      * 区块满足共识规则吗？
      */
