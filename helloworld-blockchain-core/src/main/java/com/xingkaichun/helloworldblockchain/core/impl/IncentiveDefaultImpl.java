@@ -40,10 +40,10 @@ import com.xingkaichun.helloworldblockchain.util.StringUtil;
  * 初期创始团队会重点审核开发者有无资格成为高级开发者，后期开发者团体自己审核开发者是不是有资质成为高级开发者。
  * 荣誉开发者：每人只能领取一次奖励，每次1 0000 0000(一亿枚)个，但是称号永久存在。有突出贡献的开发者，都可以领取荣誉开发者称号。可能只有创始团队才能领走一个荣誉开发者称号了。
  *
- * 基金会的奖励，占总激励的20%。github 5万star在启动。
+ * 基金会的奖励，占总激励的20%。github 100万star在启动。
  * 基金会：用于投资产生盈利持续发展项目的资金。奖励暂时不启动。
  *
- * 建设者的奖励，占总激励的29%。github 10万star在启动。
+ * 建设者的奖励，占总激励的29%。github 100万star在启动。
  * 建设者：对计算机世界建设有意义的人。
  * 开源者、底层建设者等等，奖励暂时不启动。如果启动，一定要公平公正公开在社区内得到广泛认同。
  *
@@ -84,7 +84,7 @@ public class IncentiveDefaultImpl extends Incentive {
             return false;
         }
         String writeAddress = block.getTransactions().get(0).getOutputs().get(0).getAddress();
-        String targetAddress = incentiveAddress(blockchainDataBase,block);;
+        String targetAddress = incentiveAddress(blockchainDataBase,block);
         if(!StringUtil.isNullOrEmpty(targetAddress)){
             if(!StringUtil.isEquals(targetAddress,writeAddress)){
 
