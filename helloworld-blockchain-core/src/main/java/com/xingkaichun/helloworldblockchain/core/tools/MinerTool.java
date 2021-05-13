@@ -1,6 +1,7 @@
 package com.xingkaichun.helloworldblockchain.core.tools;
 
 import com.xingkaichun.helloworldblockchain.core.BlockchainDatabase;
+import com.xingkaichun.helloworldblockchain.core.Incentive;
 import com.xingkaichun.helloworldblockchain.core.UnconfirmedTransactionDatabase;
 import com.xingkaichun.helloworldblockchain.core.model.Block;
 import com.xingkaichun.helloworldblockchain.core.model.transaction.Transaction;
@@ -178,10 +179,12 @@ public class MinerTool {
 
         //创建挖矿奖励交易
         //激励金额
-        long incentiveValue = blockchainDataBase.getIncentive().incentiveAmount(blockchainDataBase,nonNonceBlock);
+        Incentive incentive = blockchainDataBase.getIncentive();
+        long incentiveValue = incentive.incentiveAmount(blockchainDataBase,nonNonceBlock);
         //激励发放地址
-        String incentiveAddress = blockchainDataBase.getIncentive().incentiveAddress(blockchainDataBase,nonNonceBlock);
+        String incentiveAddress = incentive.incentiveAddress(blockchainDataBase,nonNonceBlock);
         Transaction mineAwardTransaction = null;
+        //指定了激励地址
         if(StringUtil.isNullOrEmpty(incentiveAddress)){
             mineAwardTransaction =  buildIncentiveTransaction(minerAccount.getAddress(),incentiveValue);
         }else {
