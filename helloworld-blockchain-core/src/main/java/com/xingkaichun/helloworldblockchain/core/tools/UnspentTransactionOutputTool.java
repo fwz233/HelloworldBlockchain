@@ -1,6 +1,7 @@
 package com.xingkaichun.helloworldblockchain.core.tools;
 
 import com.xingkaichun.helloworldblockchain.core.model.transaction.UnspentTransactionOutput;
+import com.xingkaichun.helloworldblockchain.setting.GlobalSetting;
 import com.xingkaichun.helloworldblockchain.util.LogUtil;
 
 /**
@@ -36,16 +37,7 @@ public class UnspentTransactionOutputTool {
      */
     public static long unspentTransactionOutputStoreFee(UnspentTransactionOutput unspentTransactionOutput,long blockHeight) {
         //支付地址存储费用
-        long unspentTransactionOutputStoreSpend = 0;
         long inputBlockHeight = unspentTransactionOutput.getBlockHeight();
-        //TODO 常量移走
-        if(inputBlockHeight <= 10000 * 1 && blockHeight <= 10000 * 1){
-            unspentTransactionOutputStoreSpend += 100;
-        }else if(inputBlockHeight <= 10000 * 2 && blockHeight <= 10000 * 2){
-            unspentTransactionOutputStoreSpend += 100;
-        }else {
-            throw new RuntimeException();
-        }
-        return unspentTransactionOutputStoreSpend;
+        return GlobalSetting.StoreFeeConstant.getStoreFee(inputBlockHeight,blockHeight);
     }
 }
